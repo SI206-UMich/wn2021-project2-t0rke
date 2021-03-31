@@ -47,7 +47,6 @@ def get_search_links():
     info = []
     for tag in tags:
         info.append('https://www.goodreads.com' + str(tag.get('href', None)))
-        print('https://www.goodreads.com' + str(tag.get('href', None)))
 
         if len(info) >= 10:
             return info
@@ -66,8 +65,14 @@ def get_book_summary(book_url):
     You can easily capture CSS selectors with your browser's inspector window.
     Make sure to strip() any newlines from the book title and number of pages.
     """
+    r = requests.get(book_url)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    title = soup.find('h1').text.strip()
+    author = soup.find('a', class_='authorName').text.strip()
+    count = int(soup.find('span', itemprop='numberOfPages').text.split()[0])
 
-    pass
+    print ((title, author, count))
+    return (title, author, count)
 
 
 def summarize_best_books(filepath):
@@ -149,26 +154,34 @@ class TestCases(unittest.TestCase):
 
         # check that each URL contains the correct url for Goodreads.com followed by /book/show/
         self.assertTrue(all('https://www.goodreads.com/book/show/' in string for string in lst))
-        
-
 
 
     def test_get_book_summary(self):
         # create a local variable – summaries – a list containing the results from get_book_summary()
         # for each URL in TestCases.search_urls (should be a list of tuples)
+        summaries = []
+        for url in get_search_links():
+            summaries.append(get_book_summary(url))
 
+        self.assertTrue(isinstance(summaries, list))
+        
         # check that the number of book summaries is correct (10)
+        self.assertEqual(len(summaries), 10)
 
-            # check that each item in the list is a tuple
+        # check that each item in the list is a tuple
+        self.assertTrue(all(isinstance(val, tuple) for val in summaries))
 
-            # check that each tuple has 3 elements
+        # check that each tuple has 3 elements
+        self.assertTrue(all(len(val)==3 for val in summaries))
 
-            # check that the first two elements in the tuple are string
+        # check that the first two elements in the tuple are string
+        self.assertTrue(all(isinstance(val[0], str) and isinstance(val[1], str) for val in summaries))
 
-            # check that the third element in the tuple, i.e. pages is an int
+        # check that the third element in the tuple, i.e. pages is an int
+        self.assertTrue(all(isinstance(val[2], str) for val in summaries))
 
-            # check that the first book in the search has 337 pages
-        pass
+        # check that the first book in the search has 337 pages
+        self.assertTrue(summaries[0][2]==337)
 
 
     def test_summarize_best_books(self):
