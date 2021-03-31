@@ -14,6 +14,15 @@ def get_titles_from_search_results(filename):
 
     [('Book title 1', 'Author 1'), ('Book title 2', 'Author 2')...]
     """
+    r = requests.get(filename)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    tags = soup.find_all('a')
+    info = []
+    for tag in tags:
+        info.append(tag.text)
+
+    print(info)
+    
 
     pass
 
@@ -31,8 +40,17 @@ def get_search_links():
     “https://www.goodreads.com/book/show/kdkd".
 
     """
+    url = 'https://www.goodreads.com/search?q=fantasy&qid=NwUsLiA2Nc'
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    tags = soup.find_all('a', class_='bookTitle')
+    info = []
+    for tag in tags:
+        info.append('https://www.goodreads.com' + str(tag.get('href', None)))
+        print('https://www.goodreads.com' + str(tag.get('href', None)))
 
-    pass
+        if len(info) >= 10:
+            return info
 
 
 def get_book_summary(book_url):
@@ -104,6 +122,7 @@ class TestCases(unittest.TestCase):
 
 
     def test_get_titles_from_search_results(self):
+        # get_titles_from_search_results('search_results.htm')
         # call get_titles_from_search_results() on search_results.htm and save to a local variable
 
         # check that the number of titles extracted is correct (20 titles)
@@ -115,15 +134,23 @@ class TestCases(unittest.TestCase):
         # check that the first book and author tuple is correct (open search_results.htm and find it)
 
         # check that the last title is correct (open search_results.htm and find it)
+        pass
 
     def test_get_search_links(self):
         # check that TestCases.search_urls is a list
-
+        lst = get_search_links()
+        self.assertTrue(isinstance(lst, list))
+    
         # check that the length of TestCases.search_urls is correct (10 URLs)
-
+        self.assertEqual(len(lst), 10)
 
         # check that each URL in the TestCases.search_urls is a string
+        self.assertTrue(all(isinstance(val, str) for val in lst))
+
         # check that each URL contains the correct url for Goodreads.com followed by /book/show/
+        self.assertTrue(all('https://www.goodreads.com/book/show/' in string for string in lst))
+        
+
 
 
     def test_get_book_summary(self):
@@ -141,6 +168,7 @@ class TestCases(unittest.TestCase):
             # check that the third element in the tuple, i.e. pages is an int
 
             # check that the first book in the search has 337 pages
+        pass
 
 
     def test_summarize_best_books(self):
@@ -155,7 +183,7 @@ class TestCases(unittest.TestCase):
         # check that the first tuple is made up of the following 3 strings:'Fiction', "The Midnight Library", 'https://www.goodreads.com/choiceawards/best-fiction-books-2020'
 
         # check that the last tuple is made up of the following 3 strings: 'Picture Books', 'Antiracist Baby', 'https://www.goodreads.com/choiceawards/best-picture-books-2020'
-
+        pass
 
     def test_write_csv(self):
         # call get_titles_from_search_results on search_results.htm and save the result to a variable
@@ -172,7 +200,7 @@ class TestCases(unittest.TestCase):
         # check that the next row is 'Harry Potter and the Deathly Hallows (Harry Potter, #7)', 'J.K. Rowling'
 
         # check that the last row is 'Harry Potter: The Prequel (Harry Potter, #0.5)', 'J.K. Rowling'
-
+        pass
 
 
 if __name__ == '__main__':
